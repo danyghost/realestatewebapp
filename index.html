@@ -56,10 +56,15 @@
             color: #fff;
             border-color: var(--tg-theme-link-color, #0088cc);
         }
+        .chip-error {
+            border-color: #e74c3c !important;
+            background: #fff0f0;
+        }
         .input-row {
             display: flex;
             gap: 10px;
         }
+        .input-row > div { width: 100%; }
         .input-row input {
             flex: 1;
         }
@@ -84,6 +89,10 @@
         input[type=number]:focus, select:focus {
             border: 1.5px solid var(--tg-theme-link-color, #0088cc);
         }
+        .input-error {
+            border: 1.5px solid #e74c3c !important;
+            background: #fff0f0;
+        }
         select {
             width: 100%;
             padding: 10px;
@@ -95,6 +104,12 @@
             box-sizing: border-box;
             outline: none;
             transition: border 0.2s;
+        }
+        .field-error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 2px;
+            min-height: 16px;
         }
         .predict-btn {
             width: 100%;
@@ -149,36 +164,52 @@
         <div class="filter-group">
             <span class="filter-label">Регион</span>
             <select id="region-select"></select>
+            <div class="field-error" id="error-region"></div>
         </div>
         <!-- Блок выбора типа здания -->
         <div class="filter-group">
             <span class="filter-label">Тип здания</span>
             <div class="chip-list" id="building-type-list"></div>
+            <div class="field-error" id="error-building-type"></div>
         </div>
         <!-- Блок выбора типа объекта -->
         <div class="filter-group">
             <span class="filter-label">Тип объекта</span>
             <div class="chip-list" id="object-type-list"></div>
+            <div class="field-error" id="error-object-type"></div>
         </div>
         <!-- Блок выбора количества комнат -->
         <div class="filter-group">
-            <span class="filter-label">Комнат</span>
+            <span class="filter-label">Количество комнат</span>
             <div class="chip-list" id="rooms-list"></div>
+            <div class="field-error" id="error-rooms"></div>
         </div>
         <!-- Блок ввода этажа и этажности -->
         <div class="filter-group">
             <span class="filter-label">Этаж / Этажей в доме</span>
             <div class="input-row">
-                <input type="number" id="level" placeholder="Этаж" min="1" max="100">
-                <input type="number" id="levels" placeholder="Этажей" min="1" max="100">
+                <div>
+                    <input type="number" id="level" placeholder="Этаж" min="1" max="30">
+                    <div class="field-error" id="error-level"></div>
+                </div>
+                <div>
+                    <input type="number" id="levels" placeholder="Всего этажей" min="1" max="30">
+                    <div class="field-error" id="error-levels"></div>
+                </div>
             </div>
         </div>
         <!-- Блок ввода площади и площади кухни -->
         <div class="filter-group">
             <span class="filter-label">Площадь (м²) / Кухня (м²)</span>
             <div class="input-row">
-                <input type="number" id="area" placeholder="Площадь" min="10" max="500">
-                <input type="number" id="kitchen_area" placeholder="Кухня" min="3" max="50">
+                <div>
+                    <input type="number" id="area" placeholder="Общая площадь" min="10" max="500">
+                    <div class="field-error" id="error-area"></div>
+                </div>
+                <div>
+                    <input type="number" id="kitchen_area" placeholder="Площадь кухни" min="3" max="50">
+                    <div class="field-error" id="error-kitchen_area"></div>
+                </div>
             </div>
         </div>
         <button class="predict-btn" onclick="calculate()">Показать прогноз</button>
@@ -199,7 +230,7 @@
         ];
         const objectTypes = [
             {label: "Вторичный рынок", value: 1},
-            {label: "Новостройка", value: 2}
+            {label: "Новостройки", value: 2}
         ];
         const rooms = [
             {label: "Студия", value: -1},
@@ -250,38 +281,85 @@
             return sel ? sel.dataset.value : null;
         }
 
-        // --- Калькуляция с обработкой ошибок ---
+        // --- Очистка ошибок ---
+        function clearFieldErrors() {
+            document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
+            document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
+            document.querySelectorAll('.chip-list').forEach(e => e.classList.remove('chip-error'));
+        }
+
+        function showFieldError(inputId, errorId, message) {
+            document.getElementById(errorId).textContent = message;
+            document.getElementById(inputId).classList.add('input-error');
+        }
+        function showChipError(errorId, message, chipListId) {
+            document.getElementById(errorId).textContent = message;
+            document.getElementById(chipListId).classList.add('chip-error');
+        }
+
+        // --- Калькуляция с инлайн-валидацией ---
         const tg = Telegram.WebApp;
         tg.expand();
         tg.MainButton.setText("Сохранить");
 
         async function calculate() {
+            clearFieldErrors();
+            let hasError = false;
+
             const region = regionSelect.value;
             const building_type = getSelected('building-type-list');
             const object_type = getSelected('object-type-list');
-            const rooms = getSelected('rooms-list');
+            const roomsVal = getSelected('rooms-list');
             const level = document.getElementById('level').value;
             const levels = document.getElementById('levels').value;
             const area = document.getElementById('area').value;
             const kitchen_area = document.getElementById('kitchen_area').value;
 
+            if (!region) {
+                showFieldError('region-select', 'error-region', 'Выберите регион');
+                hasError = true;
+            }
+            if (!building_type) {
+                showChipError('error-building-type', 'Выберите тип здания', 'building-type-list');
+                hasError = true;
+            }
+            if (!object_type) {
+                showChipError('error-object-type', 'Выберите тип объекта', 'object-type-list');
+                hasError = true;
+            }
+            if (!roomsVal) {
+                showChipError('error-rooms', 'Выберите количество комнат', 'rooms-list');
+                hasError = true;
+            }
+            if (!level) {
+                showFieldError('level', 'error-level', 'Заполните этаж');
+                hasError = true;
+            }
+            if (!levels) {
+                showFieldError('levels', 'error-levels', 'Заполните этажность');
+                hasError = true;
+            }
+            if (!area) {
+                showFieldError('area', 'error-area', 'Заполните площадь');
+                hasError = true;
+            }
+            if (!kitchen_area) {
+                showFieldError('kitchen_area', 'error-kitchen_area', 'Заполните кухню');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
             const resultBlock = document.getElementById('result');
             resultBlock.style.display = 'none';
             resultBlock.innerHTML = '';
-
-            // Проверка обязательных полей
-            if (!region || !building_type || !object_type || !rooms || !level || !levels || !area || !kitchen_area) {
-                resultBlock.innerHTML = `<div class="result-block"><div class="result-desc">Пожалуйста, заполните все поля!</div></div>`;
-                resultBlock.style.display = 'block';
-                return;
-            }
 
             try {
                 const response = await fetch('https://web-production-1e3e8.up.railway.app/predict', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        region, building_type, object_type, rooms,
+                        region, building_type, object_type, rooms: roomsVal,
                         level: Number(level), levels: Number(levels),
                         area: Number(area), kitchen_area: Number(kitchen_area)
                     })
