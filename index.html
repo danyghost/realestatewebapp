@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор стоимости</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--tg-theme-bg-color, #f4f4f4);
+            color: var(--tg-theme-text-color, #222);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 480px;
+            margin: 24px auto;
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07), 0 1.5px 6px 0 rgba(0,0,0,0.03);
+            padding: 24px 16px 32px 16px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 2rem;
+        }
+        .filter-group {
+            margin-bottom: 18px;
+        }
+        .filter-label {
+            font-size: 15px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .chip {
+            padding: 7px 16px;
+            border-radius: 20px;
+            background: var(--tg-theme-secondary-bg-color, #f4f4f4);
+            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
+            color: var(--tg-theme-text-color, #222);
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.15s, border 0.15s, color 0.15s;
+            user-select: none;
+        }
+        .chip.selected {
+            background: var(--tg-theme-link-color, #0088cc);
+            color: #fff;
+            border-color: var(--tg-theme-link-color, #0088cc);
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        .input-row input {
+            flex: 1;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            appearance: textfield;
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            color: var(--tg-theme-text-color, #222);
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.2s;
+        }
+        input[type=number]:focus, select:focus {
+            border: 1.5px solid var(--tg-theme-link-color, #0088cc);
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            color: var(--tg-theme-text-color, #222);
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .predict-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--tg-theme-button-color, #0088cc);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            cursor: pointer;
+            margin-top: 18px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .predict-btn:active {
+            background: var(--tg-theme-link-color, #006699);
+            transform: scale(0.98);
+        }
+        .result-block {
+            margin-top: 28px;
+            text-align: center;
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 18px 10px;
+            animation: fadeResult 0.5s;
+        }
+        @keyframes fadeResult {
+            from { opacity: 0; transform: translateY(20px);}
+            to   { opacity: 1; transform: translateY(0);}
+        }
+        .result-price {
+            font-size: 30px;
+            font-weight: bold;
+            color: var(--tg-theme-link-color, #0088cc);
+            margin-bottom: 8px;
+        }
+        .result-desc {
+            color: var(--tg-theme-hint-color, #888);
+            font-size: 15px;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px 2vw 24px 2vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🏠 Прогноз стоимости недвижимости</h2>
+        <!-- Блок выбора региона (выпадающий список) -->
+        <div class="filter-group">
+            <span class="filter-label">Регион</span>
+            <select id="region-select"></select>
+        </div>
+        <!-- Блок выбора типа здания -->
+        <div class="filter-group">
+            <span class="filter-label">Тип здания</span>
+            <div class="chip-list" id="building-type-list"></div>
+        </div>
+        <!-- Блок выбора типа объекта -->
+        <div class="filter-group">
+            <span class="filter-label">Тип объекта</span>
+            <div class="chip-list" id="object-type-list"></div>
+        </div>
+        <!-- Блок выбора количества комнат -->
+        <div class="filter-group">
+            <span class="filter-label">Комнат</span>
+            <div class="chip-list" id="rooms-list"></div>
+        </div>
+        <!-- Блок ввода этажа и этажности -->
+        <div class="filter-group">
+            <span class="filter-label">Этаж / Этажей в доме</span>
+            <div class="input-row">
+                <input type="number" id="level" placeholder="Этаж" min="1" max="100">
+                <input type="number" id="levels" placeholder="Этажей" min="1" max="100">
+            </div>
+        </div>
+        <!-- Блок ввода площади и площади кухни -->
+        <div class="filter-group">
+            <span class="filter-label">Площадь (м²) / Кухня (м²)</span>
+            <div class="input-row">
+                <input type="number" id="area" placeholder="Площадь" min="10" max="500">
+                <input type="number" id="kitchen_area" placeholder="Кухня" min="3" max="50">
+            </div>
+        </div>
+        <button class="predict-btn" onclick="calculate()">Показать прогноз</button>
+        <div id="result" style="display:none"></div>
+    </div>
+    <script>
+        // --- Категории ---
+        const regions = [
+            "Москва","Санкт-Петербург","Республика Адыгея","Республика Алтай","Республика Башкортостан","Республика Бурятия","Республика Дагестан","Республика Ингушетия","Кабардино-Балкарская Республика","Республика Калмыкия","Карачаево-Черкесская Республика","Республика Карелия","Республика Коми","Республика Крым","Республика Марий Эл","Республика Мордовия","Республика Саха (Якутия)","Республика Северная Осетия-Алания","Республика Татарстан","Республика Тыва","Удмуртская Республика","Республика Хакасия","Чеченская Республика","Чувашская Республика","Алтайский край","Забайкальский край","Камчатский край","Краснодарский край","Красноярский край","Пермский край","Приморский край","Ставропольский край","Хабаровский край","Амурская область","Архангельская область","Астраханская область","Белгородская область","Брянская область","Владимирская область","Волгоградская область","Вологодская область","Воронежская область","Ивановская область","Иркутская область","Калининградская область","Калужская область","Кемеровская область","Кировская область","Костромская область","Курганская область","Курская область","Ленинградская область","Липецкая область","Магаданская область","Московская область","Мурманская область","Нижегородская область","Новгородская область","Новосибирская область","Омская область","Оренбургская область","Орловская область","Пензенская область","Псковская область","Ростовская область","Рязанская область","Самарская область","Саратовская область","Сахалинская область","Свердловская область","Смоленская область","Тамбовская область","Тверская область","Томская область","Тульская область","Тюменская область","Ульяновская область","Челябинская область","Ярославская область","Севастополь","Еврейская автономная область","Ненецкий автономный округ","Ханты-Мансийский автономный округ","Чукотский автономный округ","Ямало-Ненецкий автономный округ"
+        ];
+        const buildingTypes = [
+            {label: "Иное", value: 0},
+            {label: "Панельный", value: 1},
+            {label: "Монолитный", value: 2},
+            {label: "Кирпичный", value: 3},
+            {label: "Блочный", value: 4},
+            {label: "Деревянный", value: 5}
+        ];
+        const objectTypes = [
+            {label: "Вторичный рынок", value: 1},
+            {label: "Новостройка", value: 2}
+        ];
+        const rooms = [
+            {label: "Студия", value: -1},
+            {label: "1", value: 1},
+            {label: "2", value: 2},
+            {label: "3", value: 3},
+            {label: "4", value: 4},
+            {label: "5+", value: 5}
+        ];
+
+        // --- Заполнение выпадающего списка регионов ---
+        const regionSelect = document.getElementById('region-select');
+        regions.forEach(region => {
+            const opt = document.createElement('option');
+            opt.value = region;
+            opt.textContent = region;
+            regionSelect.appendChild(opt);
+        });
+
+        // --- Рендер чипов ---
+        function renderChips(list, containerId, single=true) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            list.forEach((item, idx) => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.textContent = item.label || item;
+                chip.dataset.value = item.value !== undefined ? item.value : item;
+                chip.onclick = () => {
+                    if (single) {
+                        container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+                        chip.classList.add('selected');
+                    } else {
+                        chip.classList.toggle('selected');
+                    }
+                };
+                if (idx === 0) chip.classList.add('selected');
+                container.appendChild(chip);
+            });
+        }
+        renderChips(buildingTypes, 'building-type-list');
+        renderChips(objectTypes, 'object-type-list');
+        renderChips(rooms, 'rooms-list');
+
+        // --- Получить выбранное значение ---
+        function getSelected(containerId) {
+            const sel = document.querySelector(`#${containerId} .chip.selected`);
+            return sel ? sel.dataset.value : null;
+        }
+
+        // --- Калькуляция ---
+        const tg = Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.setText("Сохранить");
+
+        async function calculate() {
+            const region = regionSelect.value;
+            const building_type = getSelected('building-type-list');
+            const object_type = getSelected('object-type-list');
+            const rooms = getSelected('rooms-list');
+            const level = document.getElementById('level').value;
+            const levels = document.getElementById('levels').value;
+            const area = document.getElementById('area').value;
+            const kitchen_area = document.getElementById('kitchen_area').value;
+
+            const resultBlock = document.getElementById('result');
+            resultBlock.style.display = 'none';
+            resultBlock.innerHTML = '';
+
+            try {
+                const response = await fetch('https://web-production-1e3e8.up.railway.app/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        region, building_type, object_type, rooms,
+                        level: Number(level), levels: Number(levels),
+                        area: Number(area), kitchen_area: Number(kitchen_area)
+                    })
+                });
+                const data = await response.json();
+                if (data.price !== undefined) {
+                    resultBlock.innerHTML = `<div class="result-block">
+                        <div class="result-price">${data.price.toLocaleString('ru-RU')} ₽</div>
+                        <div class="result-desc">Ориентировочная стоимость по введённым параметрам</div>
+                    </div>`;
+                } else {
+                    resultBlock.innerHTML = `<div class="result-block"><div class="result-desc">${data.error || 'Ошибка расчёта'}</div></div>`;
+                }
+                resultBlock.style.display = 'block';
+            } catch (e) {
+                resultBlock.innerHTML = `<div class="result-block"><div class="result-desc">Ошибка соединения с сервером</div></div>`;
+                resultBlock.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
