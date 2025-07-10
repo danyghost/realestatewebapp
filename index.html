@@ -155,6 +155,85 @@
         @media (max-width: 600px) {
             .container { padding: 12px 2vw 24px 2vw; }
         }
+        .suggest-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            z-index: 10;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .suggest-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #222;
+            transition: background 0.15s;
+        }
+        .suggest-item:hover, .suggest-item.selected {
+            background: var(--tg-theme-link-color, #0088cc);
+            color: #fff;
+        }
+        .region-input {
+            width: 100%;
+            padding: 10px 12px 10px 38px;
+            border-radius: 10px;
+            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            color: var(--tg-theme-text-color, #222);
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            margin-bottom: 0;
+        }
+        .region-input:focus {
+            border: 1.5px solid var(--tg-theme-link-color, #0088cc);
+            box-shadow: 0 2px 8px rgba(0,136,204,0.07);
+        }
+        .region-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .suggest-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            z-index: 10;
+            max-height: 180px;
+            overflow-y: auto;
+            animation: fadeSuggest 0.18s;
+        }
+        .suggest-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #222;
+            transition: background 0.15s, color 0.15s;
+        }
+        .suggest-item:hover, .suggest-item.selected {
+            background: var(--tg-theme-link-color, #0088cc);
+            color: #fff;
+        }
+        @keyframes fadeSuggest {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -173,10 +252,14 @@
                 <b>Аренда</b> — узнать стоимость аренды или сдачи квартиры.
             </div>
         </div>
-        <!-- Блок выбора региона (выпадающий список) -->
+        <!-- Блок выбора региона (input с автопоиском) -->
         <div class="filter-group">
             <span class="filter-label">Регион</span>
-            <select id="region-select"></select>
+            <div style="position:relative;">
+                <span class="region-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="7" stroke="#bbb" stroke-width="2"/><path d="M15 15L19 19" stroke="#bbb" stroke-width="2" stroke-linecap="round"/></svg></span>
+                <input type="text" id="region-input" placeholder="Начните вводить регион..." autocomplete="off" class="region-input">
+                <div id="region-suggest" class="suggest-list" style="display:none;"></div>
+            </div>
             <div class="field-error" id="error-region"></div>
         </div>
         <!-- Блок выбора типа здания -->
@@ -230,9 +313,10 @@
     </div>
     <script>
         // --- Категории ---
-        const regions = [
+        let regions = [
             "Москва","Санкт-Петербург","Республика Адыгея","Республика Алтай","Республика Башкортостан","Республика Бурятия","Республика Дагестан","Республика Ингушетия","Кабардино-Балкарская Республика","Республика Калмыкия","Карачаево-Черкесская Республика","Республика Карелия","Республика Коми","Республика Крым","Республика Марий Эл","Республика Мордовия","Республика Саха (Якутия)","Республика Северная Осетия-Алания","Республика Татарстан","Республика Тыва","Удмуртская Республика","Республика Хакасия","Чеченская Республика","Чувашская Республика","Алтайский край","Забайкальский край","Камчатский край","Краснодарский край","Красноярский край","Пермский край","Приморский край","Ставропольский край","Хабаровский край","Амурская область","Архангельская область","Астраханская область","Белгородская область","Брянская область","Владимирская область","Волгоградская область","Вологодская область","Воронежская область","Ивановская область","Иркутская область","Калининградская область","Калужская область","Кемеровская область","Кировская область","Костромская область","Курганская область","Курская область","Ленинградская область","Липецкая область","Магаданская область","Московская область","Мурманская область","Нижегородская область","Новгородская область","Новосибирская область","Омская область","Оренбургская область","Орловская область","Пензенская область","Псковская область","Ростовская область","Рязанская область","Самарская область","Саратовская область","Сахалинская область","Свердловская область","Смоленская область","Тамбовская область","Тверская область","Томская область","Тульская область","Тюменская область","Ульяновская область","Челябинская область","Ярославская область","Севастополь","Еврейская автономная область","Ненецкий автономный округ","Ханты-Мансийский автономный округ","Чукотский автономный округ","Ямало-Ненецкий автономный округ"
         ];
+        regions = regions.sort((a, b) => a.localeCompare(b, 'ru'));
         const buildingTypes = [
             {label: "Иное", value: 0},
             {label: "Панельный", value: 1},
@@ -258,13 +342,63 @@
             {label: "Аренда", value: "rent"}
         ];
 
-        // --- Заполнение выпадающего списка регионов ---
-        const regionSelect = document.getElementById('region-select');
-        regions.forEach(region => {
-            const opt = document.createElement('option');
-            opt.value = region;
-            opt.textContent = region;
-            regionSelect.appendChild(opt);
+        // --- Автопоиск региона ---
+        const regionInput = document.getElementById('region-input');
+        const regionSuggest = document.getElementById('region-suggest');
+        let regionSelected = '';
+
+        function showRegionSuggest(filtered) {
+            if (!filtered.length) {
+                regionSuggest.style.display = 'none';
+                return;
+            }
+            regionSuggest.innerHTML = '';
+            filtered.forEach(region => {
+                const div = document.createElement('div');
+                div.className = 'suggest-item';
+                div.textContent = region;
+                div.onclick = () => {
+                    regionInput.value = region;
+                    regionSelected = region;
+                    regionSuggest.style.display = 'none';
+                };
+                regionSuggest.appendChild(div);
+            });
+            regionSuggest.style.display = 'block';
+        }
+
+        regionInput.addEventListener('input', function() {
+            const val = regionInput.value.trim().toLowerCase();
+            if (!val) {
+                showRegionSuggest(regions.slice(0, 10));
+                regionSelected = '';
+                return;
+            }
+            // Сначала регионы, начинающиеся с val, затем остальные
+            const startsWith = regions.filter(r => r.toLowerCase().startsWith(val));
+            const includes = regions.filter(r => !r.toLowerCase().startsWith(val) && r.toLowerCase().includes(val));
+            const filtered = startsWith.concat(includes).slice(0, 10);
+            showRegionSuggest(filtered);
+            regionSelected = '';
+        });
+        regionInput.addEventListener('focus', function() {
+            if (regionInput.value.trim() === '') {
+                showRegionSuggest(regions.slice(0, 10));
+            } else {
+                const val = regionInput.value.trim().toLowerCase();
+                const startsWith = regions.filter(r => r.toLowerCase().startsWith(val));
+                const includes = regions.filter(r => !r.toLowerCase().startsWith(val) && r.toLowerCase().includes(val));
+                const filtered = startsWith.concat(includes).slice(0, 10);
+                showRegionSuggest(filtered);
+            }
+        });
+        document.addEventListener('click', function(e) {
+            if (!regionInput.contains(e.target) && !regionSuggest.contains(e.target)) {
+                regionSuggest.style.display = 'none';
+            }
+        });
+        regionInput.addEventListener('blur', function() {
+            setTimeout(() => regionSuggest.style.display = 'none', 150);
         });
 
         // --- Рендер чипов ---
@@ -324,7 +458,7 @@
             clearFieldErrors();
             let hasError = false;
 
-            const region = regionSelect.value;
+            const region = regionInput.value.trim();
             const building_type = getSelected('building-type-list');
             const object_type = getSelected('object-type-list');
             const roomsVal = getSelected('rooms-list');
@@ -335,7 +469,7 @@
             const deal_type = getSelected('deal-type-list');
 
             if (!region) {
-                showFieldError('region-select', 'error-region', 'Выберите регион');
+                showFieldError('region-input', 'error-region', 'Выберите регион');
                 hasError = true;
             }
             if (!building_type) {
