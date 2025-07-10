@@ -160,6 +160,19 @@
 <body>
     <div class="container">
         <h2>🏠 Прогноз стоимости недвижимости</h2>
+        <div style="margin-bottom:18px;color:#555;font-size:15px;text-align:center;line-height:1.4;">
+            Сервис для оценки <b>покупки, продажи и аренды</b> недвижимости.<br>Выберите параметры и получите прогноз стоимости и аналоги с рынка.
+        </div>
+        <!-- Блок выбора типа сделки -->
+        <div class="filter-group">
+            <span class="filter-label">Тип сделки</span>
+            <div class="chip-list" id="deal-type-list"></div>
+            <div class="field-error" id="error-deal-type"></div>
+            <div style="color:#888;font-size:13px;margin-top:4px;line-height:1.3;">
+                <b>Покупка/Продажа</b> — узнать рыночную стоимость для покупки или продажи квартиры.<br>
+                <b>Аренда</b> — узнать стоимость аренды или сдачи квартиры.
+            </div>
+        </div>
         <!-- Блок выбора региона (выпадающий список) -->
         <div class="filter-group">
             <span class="filter-label">Регион</span>
@@ -240,6 +253,10 @@
             {label: "4", value: 4},
             {label: "5+", value: 5}
         ];
+        const dealTypes = [
+            {label: "Покупка/Продажа", value: "sale"},
+            {label: "Аренда", value: "rent"}
+        ];
 
         // --- Заполнение выпадающего списка регионов ---
         const regionSelect = document.getElementById('region-select');
@@ -274,6 +291,7 @@
         renderChips(buildingTypes, 'building-type-list');
         renderChips(objectTypes, 'object-type-list');
         renderChips(rooms, 'rooms-list');
+        renderChips(dealTypes, 'deal-type-list');
 
         // --- Получить выбранное значение ---
         function getSelected(containerId) {
@@ -314,6 +332,7 @@
             const levels = document.getElementById('levels').value;
             const area = document.getElementById('area').value;
             const kitchen_area = document.getElementById('kitchen_area').value;
+            const deal_type = getSelected('deal-type-list');
 
             if (!region) {
                 showFieldError('region-select', 'error-region', 'Выберите регион');
@@ -347,6 +366,10 @@
                 showFieldError('kitchen_area', 'error-kitchen_area', 'Заполните кухню');
                 hasError = true;
             }
+            if (!deal_type) {
+                showChipError('error-deal-type', 'Выберите тип сделки', 'deal-type-list');
+                hasError = true;
+            }
 
             if (hasError) return;
 
@@ -361,14 +384,29 @@
                     body: JSON.stringify({
                         region, building_type, object_type, rooms: roomsVal,
                         level: Number(level), levels: Number(levels),
-                        area: Number(area), kitchen_area: Number(kitchen_area)
+                        area: Number(area), kitchen_area: Number(kitchen_area),
+                        deal_type
                     })
                 });
                 const data = await response.json();
                 if (response.ok && data.price !== undefined) {
+                    let analogsHtml = '';
+                    if (data.analogs && data.analogs.length > 0) {
+                        analogsHtml = `<div style="margin-top:24px;text-align:left"><b>Похожие предложения на Циан:</b><div style="margin-top:10px;display:grid;gap:12px;">` +
+                            data.analogs.map(flat => `
+                                <div style="border-radius:12px;padding:10px 14px;background:#f7faff;border:1px solid #e0e7ef;">
+                                    <div style="font-size:16px;font-weight:500;">${flat.address || flat.location || ''}</div>
+                                    <div style="color:#0088cc;font-size:18px;font-weight:bold;">${flat.price ? flat.price.toLocaleString('ru-RU') + ' ₽' : ''}</div>
+                                    <a href="${flat.url || '#'}" target="_blank" style="color:#0088cc;text-decoration:underline;font-size:14px;">Открыть объявление</a>
+                                </div>
+                            `).join('') + '</div></div>';
+                    } else {
+                        analogsHtml = '<div style="margin-top:24px;color:#888;text-align:left;">Похожие предложения на Циан не найдены.</div>';
+                    }
                     resultBlock.innerHTML = `<div class="result-block">
                         <div class="result-price">${data.price.toLocaleString('ru-RU')} ₽</div>
                         <div class="result-desc">Ориентировочная стоимость по введённым параметрам</div>
+                        ${analogsHtml}
                     </div>`;
                 } else {
                     resultBlock.innerHTML = `<div class="result-block"><div class="result-desc">${data.error || 'Ошибка расчёта'}</div></div>`;
