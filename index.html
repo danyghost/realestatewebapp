@@ -418,7 +418,8 @@
                         chip.classList.toggle('selected');
                     }
                 };
-                if (idx === 0) chip.classList.add('selected');
+                // Не выделяем первый чип по умолчанию для всех обязательных чип-листов
+                if (idx === 0 && !['deal-type-list','building-type-list','object-type-list','rooms-list'].includes(containerId)) chip.classList.add('selected');
                 container.appendChild(chip);
             });
         }
