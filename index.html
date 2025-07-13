@@ -401,7 +401,14 @@
             setTimeout(() => regionSuggest.style.display = 'none', 150);
         });
 
-        // --- Рендер чипов ---
+        // --- Сохраняем выбранные значения чипов ---
+        let selectedChips = {
+            'deal-type-list': null,
+            'building-type-list': null,
+            'object-type-list': null,
+            'rooms-list': null
+        };
+
         function renderChips(list, containerId, single=true) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
@@ -414,12 +421,16 @@
                     if (single) {
                         container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
                         chip.classList.add('selected');
+                        selectedChips[containerId] = chip.dataset.value;
                     } else {
                         chip.classList.toggle('selected');
+                        // Для мультивыбора можно реализовать массив, если потребуется
                     }
                 };
-                // Не выделяем первый чип по умолчанию для всех обязательных чип-листов
-                if (idx === 0 && !['deal-type-list','building-type-list','object-type-list','rooms-list'].includes(containerId)) chip.classList.add('selected');
+                // Восстанавливаем выделение, если ранее было выбрано
+                if (selectedChips[containerId] && chip.dataset.value == selectedChips[containerId]) {
+                    chip.classList.add('selected');
+                }
                 container.appendChild(chip);
             });
         }
@@ -430,8 +441,10 @@
 
         // --- Получить выбранное значение ---
         function getSelected(containerId) {
+            // Сначала пытаемся получить из DOM, если нет — из selectedChips
             const sel = document.querySelector(`#${containerId} .chip.selected`);
-            return sel ? sel.dataset.value : null;
+            if (sel) return sel.dataset.value;
+            return selectedChips[containerId] || null;
         }
 
         // --- Очистка ошибок ---
