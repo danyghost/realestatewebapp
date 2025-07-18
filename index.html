@@ -313,10 +313,6 @@
     </div>
     <script>
         // --- Категории ---
-        let regions = [
-            "Москва","Санкт-Петербург","Республика Адыгея","Республика Алтай","Республика Башкортостан","Республика Бурятия","Республика Дагестан","Республика Ингушетия","Кабардино-Балкарская Республика","Республика Калмыкия","Карачаево-Черкесская Республика","Республика Карелия","Республика Коми","Республика Крым","Республика Марий Эл","Республика Мордовия","Республика Саха (Якутия)","Республика Северная Осетия-Алания","Республика Татарстан","Республика Тыва","Удмуртская Республика","Республика Хакасия","Чеченская Республика","Чувашская Республика","Алтайский край","Забайкальский край","Камчатский край","Краснодарский край","Красноярский край","Пермский край","Приморский край","Ставропольский край","Хабаровский край","Амурская область","Архангельская область","Астраханская область","Белгородская область","Брянская область","Владимирская область","Волгоградская область","Вологодская область","Воронежская область","Ивановская область","Иркутская область","Калининградская область","Калужская область","Кемеровская область","Кировская область","Костромская область","Курганская область","Курская область","Ленинградская область","Липецкая область","Магаданская область","Московская область","Мурманская область","Нижегородская область","Новгородская область","Новосибирская область","Омская область","Оренбургская область","Орловская область","Пензенская область","Псковская область","Ростовская область","Рязанская область","Самарская область","Саратовская область","Сахалинская область","Свердловская область","Смоленская область","Тамбовская область","Тверская область","Томская область","Тульская область","Тюменская область","Ульяновская область","Челябинская область","Ярославская область","Севастополь","Еврейская автономная область","Ненецкий автономный округ","Ханты-Мансийский автономный округ","Чукотский автономный округ","Ямало-Ненецкий автономный округ"
-        ];
-        regions = regions.sort((a, b) => a.localeCompare(b, 'ru'));
         const buildingTypes = [
             {label: "Иное", value: 0},
             {label: "Панельный", value: 1},
@@ -341,6 +337,16 @@
             {label: "Покупка/Продажа", value: "sale"},
             {label: "Аренда", value: "rent"}
         ];
+
+        // --- Загрузка поддерживаемых регионов с бэка ---
+        let regions = [];
+        fetch('https://web-production-1e3e8.up.railway.app/locations')
+          .then(res => res.json())
+          .then(data => {
+            regions = data;
+            regions = regions.sort((a, b) => a.localeCompare(b, 'ru'));
+            // Можно вызвать функцию для инициализации автопоиска, если нужно
+          });
 
         // --- Автопоиск региона ---
         const regionInput = document.getElementById('region-input');
@@ -482,20 +488,24 @@
             const kitchen_area = document.getElementById('kitchen_area').value;
             const deal_type = getSelected('deal-type-list');
 
-            if (!region) {
-                showFieldError('region-input', 'error-region', 'Выберите регион');
+            // Строгая проверка: регион должен быть из списка (без учета регистра и пробелов)
+            if (!region || !regions.some(r => r.trim().toLowerCase() === region.trim().toLowerCase())) {
+                showFieldError('region-input', 'error-region', 'Выберите регион из списка');
                 hasError = true;
             }
-            if (!building_type) {
-                showChipError('error-building-type', 'Выберите тип здания', 'building-type-list');
+            // Строгая проверка: тип здания
+            if (!building_type || !buildingTypes.some(t => String(t.value) === String(building_type))) {
+                showChipError('error-building-type', 'Выберите тип здания из списка', 'building-type-list');
                 hasError = true;
             }
-            if (!object_type) {
-                showChipError('error-object-type', 'Выберите тип объекта', 'object-type-list');
+            // Строгая проверка: тип объекта
+            if (!object_type || !objectTypes.some(t => String(t.value) === String(object_type))) {
+                showChipError('error-object-type', 'Выберите тип объекта из списка', 'object-type-list');
                 hasError = true;
             }
-            if (!roomsVal) {
-                showChipError('error-rooms', 'Выберите количество комнат', 'rooms-list');
+            // Строгая проверка: количество комнат
+            if (!roomsVal || !rooms.some(t => String(t.value) === String(roomsVal))) {
+                showChipError('error-rooms', 'Выберите количество комнат из списка', 'rooms-list');
                 hasError = true;
             }
             if (!level) {
@@ -514,12 +524,16 @@
                 showFieldError('kitchen_area', 'error-kitchen_area', 'Заполните кухню');
                 hasError = true;
             }
-            if (!deal_type) {
-                showChipError('error-deal-type', 'Выберите тип сделки', 'deal-type-list');
+            // Строгая проверка: тип сделки
+            if (!deal_type || !dealTypes.some(t => String(t.value) === String(deal_type))) {
+                showChipError('error-deal-type', 'Выберите тип сделки из списка', 'deal-type-list');
                 hasError = true;
             }
 
             if (hasError) return;
+
+            // --- Найти точное название региона для отправки ---
+            const region_name = regions.find(r => r.trim().toLowerCase() === region.trim().toLowerCase()) || region;
 
             const resultBlock = document.getElementById('result');
             resultBlock.style.display = 'none';
@@ -530,7 +544,7 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        region, building_type, object_type, rooms: roomsVal,
+                        region_name, building_type, object_type, rooms: roomsVal,
                         level: Number(level), levels: Number(levels),
                         area: Number(area), kitchen_area: Number(kitchen_area),
                         deal_type
