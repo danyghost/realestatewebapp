@@ -234,6 +234,9 @@
             from { opacity: 0; transform: translateY(-8px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+        .form-group { margin-bottom: 1em; }
+        .error-message { color: #d9534f; font-size: 0.95em; margin-top: 0.25em; }
+        #result { margin-top: 2em; }
     </style>
 </head>
 <body>
@@ -252,15 +255,18 @@
                 <b>Аренда</b> — узнать стоимость аренды или сдачи квартиры.
             </div>
         </div>
-        <!-- Блок выбора региона (input с автопоиском) -->
-        <div class="filter-group">
-            <span class="filter-label">Регион</span>
-            <div style="position:relative;">
-                <span class="region-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="7" stroke="#bbb" stroke-width="2"/><path d="M15 15L19 19" stroke="#bbb" stroke-width="2" stroke-linecap="round"/></svg></span>
-                <input type="text" id="region-input" placeholder="Начните вводить регион..." autocomplete="off" class="region-input">
-                <div id="region-suggest" class="suggest-list" style="display:none;"></div>
-            </div>
-            <div class="field-error" id="error-region"></div>
+        <!-- Добавляю современный блок выбора региона и города -->
+        <div class="form-group">
+            <label for="regionInput">Регион:</label>
+            <input list="regions" id="regionInput" class="form-control" placeholder="Выберите регион" autocomplete="off">
+            <datalist id="regions"></datalist>
+            <div id="regionError" class="error-message"></div>
+        </div>
+        <div class="form-group">
+            <label for="cityInput">Город:</label>
+            <input list="cities" id="cityInput" class="form-control" placeholder="Выберите город или оставьте пустым для всех городов региона" autocomplete="off" disabled>
+            <datalist id="cities"></datalist>
+            <div id="cityError" class="error-message"></div>
         </div>
         <!-- Блок выбора типа здания -->
         <div class="filter-group">
@@ -306,8 +312,8 @@
                     <input type="number" id="kitchen_area" placeholder="Площадь кухни" min="3" max="50">
                     <div class="field-error" id="error-kitchen_area"></div>
                 </div>
-            </div>
-        </div>
+    </div>
+    </div>
         <button class="predict-btn" onclick="calculate()">Показать прогноз</button>
         <div id="result" style="display:none"></div>
     </div>
@@ -349,28 +355,27 @@
           });
 
         // --- Автопоиск региона ---
-        const regionInput = document.getElementById('region-input');
-        const regionSuggest = document.getElementById('region-suggest');
+        const regionInput = document.getElementById('regionInput');
         let regionSelected = '';
 
         function showRegionSuggest(filtered) {
             if (!filtered.length) {
-                regionSuggest.style.display = 'none';
+                // regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
                 return;
             }
-            regionSuggest.innerHTML = '';
-            filtered.forEach(region => {
-                const div = document.createElement('div');
-                div.className = 'suggest-item';
-                div.textContent = region;
-                div.onclick = () => {
-                    regionInput.value = region;
-                    regionSelected = region;
-                    regionSuggest.style.display = 'none';
-                };
-                regionSuggest.appendChild(div);
-            });
-            regionSuggest.style.display = 'block';
+            // regionSuggest.innerHTML = ''; // This line is removed as regionSuggest is no longer defined
+            // filtered.forEach(region => { // This line is removed as regionSuggest is no longer defined
+            //     const div = document.createElement('div'); // This line is removed as regionSuggest is no longer defined
+            //     div.className = 'suggest-item'; // This line is removed as regionSuggest is no longer defined
+            //     div.textContent = region; // This line is removed as regionSuggest is no longer defined
+            //     div.onclick = () => { // This line is removed as regionSuggest is no longer defined
+            //         regionInput.value = region; // This line is removed as regionSuggest is no longer defined
+            //         regionSelected = region; // This line is removed as regionSuggest is no longer defined
+            //         // regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
+            //     }; // This line is removed as regionSuggest is no longer defined
+            //     // regionSuggest.appendChild(div); // This line is removed as regionSuggest is no longer defined
+            // }); // This line is removed as regionSuggest is no longer defined
+            // regionSuggest.style.display = 'block'; // This line is removed as regionSuggest is no longer defined
         }
 
         regionInput.addEventListener('input', function() {
@@ -399,12 +404,14 @@
             }
         });
         document.addEventListener('click', function(e) {
-            if (!regionInput.contains(e.target) && !regionSuggest.contains(e.target)) {
-                regionSuggest.style.display = 'none';
-            }
+            // if (!regionInput.contains(e.target) && !regionSuggest.contains(e.target)) { // This line is removed as regionSuggest is no longer defined
+            //     regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
+            // } // This line is removed as regionSuggest is no longer defined
         });
         regionInput.addEventListener('blur', function() {
-            setTimeout(() => regionSuggest.style.display = 'none', 150);
+            setTimeout(() => {
+                // regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
+            }, 150);
         });
 
         // --- Сохраняем выбранные значения чипов ---
@@ -541,16 +548,16 @@
 
             try {
                 const response = await fetch('https://web-production-1e3e8.up.railway.app/predict', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
                         region_name, building_type, object_type, rooms: roomsVal,
                         level: Number(level), levels: Number(levels),
                         area: Number(area), kitchen_area: Number(kitchen_area),
                         deal_type
-                    })
-                });
-                const data = await response.json();
+                })
+            });
+            const data = await response.json();
                 if (response.ok && data.price !== undefined) {
                     let analogsHtml = '';
                     if (data.analogs && data.analogs.length > 0) {
@@ -579,6 +586,64 @@
                 resultBlock.style.display = 'block';
             }
         }
+
+        // Получение и заполнение регионов
+        fetch('/regions')
+          .then(res => res.json())
+          .then(regions => {
+            const datalist = document.getElementById('regions');
+            datalist.innerHTML = regions.map(r => `<option value="${r}">`).join('');
+          });
+
+        // При выборе региона — подгружаем города
+        const cityInput = document.getElementById('cityInput');
+        regionInput.addEventListener('change', function() {
+          const region = this.value;
+          document.getElementById('regionError').textContent = '';
+          cityInput.value = '';
+          cityInput.disabled = true;
+          fetch(`/cities?region=${encodeURIComponent(region)}`)
+            .then(res => res.json())
+            .then(cities => {
+              const datalist = document.getElementById('cities');
+              datalist.innerHTML = cities.map(c => `<option value="${c}">`).join('');
+              cityInput.disabled = false;
+            });
+        });
+
+        // Валидация и отправка формы
+        const predictBtn = document.getElementById('predictBtn');
+        predictBtn.addEventListener('click', function() {
+          const region = regionInput.value.trim();
+          const city = cityInput.value.trim();
+          let valid = true;
+          document.getElementById('regionError').textContent = '';
+          document.getElementById('cityError').textContent = '';
+          if (!region) {
+            document.getElementById('regionError').textContent = 'Выберите регион';
+            valid = false;
+          }
+          if (!valid) return;
+          predictBtn.disabled = true;
+          fetch('/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ region, city: city || undefined })
+          })
+            .then(res => res.json())
+            .then(data => {
+              predictBtn.disabled = false;
+              if (data.error) {
+                document.getElementById('result').innerHTML = `<div class='error-message'>${data.error}</div>`;
+              } else {
+                document.getElementById('result').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+              }
+            })
+            .catch(err => {
+              predictBtn.disabled = false;
+              document.getElementById('result').innerHTML = `<div class='error-message'>Ошибка запроса: ${err}</div>`;
+            });
+        });
     </script>
 </body>
 </html>
