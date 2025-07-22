@@ -4,19 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Прогноз стоимости недвижимости</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: var(--tg-theme-bg-color, #f4f4f4);
-            color: var(--tg-theme-text-color, #222);
+            background: #f4f4f4;
+            color: #222222;
             margin: 0;
             padding: 0;
         }
         .container {
             max-width: 480px;
             margin: 24px auto;
-            background: var(--tg-theme-secondary-bg-color, #fff);
+            background: #ffffff;
             border-radius: 18px;
             box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07), 0 1.5px 6px 0 rgba(0,0,0,0.03);
             padding: 24px 16px 32px 16px;
@@ -28,10 +27,11 @@
         }
         .filter-group {
             margin-bottom: 18px;
+            position: relative;
         }
         .filter-label {
             font-size: 15px;
-            color: var(--tg-theme-hint-color, #888);
+            color: #888888;
             margin-bottom: 8px;
             display: block;
         }
@@ -43,18 +43,18 @@
         .chip {
             padding: 7px 16px;
             border-radius: 20px;
-            background: var(--tg-theme-secondary-bg-color, #f4f4f4);
-            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
-            color: var(--tg-theme-text-color, #222);
+            background: #f4f4f4;
+            border: 1.5px solid #888888;
+            color: #222222;
             font-size: 15px;
             cursor: pointer;
             transition: background 0.15s, border 0.15s, color 0.15s;
             user-select: none;
         }
         .chip.selected {
-            background: var(--tg-theme-link-color, #0088cc);
+            background: #0088cc;
             color: #fff;
-            border-color: var(--tg-theme-link-color, #0088cc);
+            border-color: #0088cc;
         }
         .chip-error {
             border-color: #e74c3c !important;
@@ -78,16 +78,16 @@
             width: 100%;
             padding: 10px;
             border-radius: 10px;
-            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
-            background: var(--tg-theme-secondary-bg-color, #fff);
-            color: var(--tg-theme-text-color, #222);
+            border: 1.5px solid #888888;
+            background: #ffffff;
+            color: #222222;
             font-size: 15px;
             box-sizing: border-box;
             outline: none;
             transition: border 0.2s;
         }
         input[type=number]:focus, select:focus {
-            border: 1.5px solid var(--tg-theme-link-color, #0088cc);
+            border: 1.5px solid #0088cc;
         }
         .input-error {
             border: 1.5px solid #e74c3c !important;
@@ -97,9 +97,9 @@
             width: 100%;
             padding: 10px;
             border-radius: 10px;
-            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
-            background: var(--tg-theme-secondary-bg-color, #fff);
-            color: var(--tg-theme-text-color, #222);
+            border: 1.5px solid #888888;
+            background: #ffffff;
+            color: #222222;
             font-size: 15px;
             box-sizing: border-box;
             outline: none;
@@ -114,8 +114,8 @@
         .predict-btn {
             width: 100%;
             padding: 15px;
-            background: var(--tg-theme-button-color, #0088cc);
-            color: var(--tg-theme-button-text-color, #fff);
+            background: #0088cc;
+            color: #ffffff;
             border: none;
             border-radius: 12px;
             font-size: 18px;
@@ -126,13 +126,13 @@
             transition: background 0.2s, transform 0.1s;
         }
         .predict-btn:active {
-            background: var(--tg-theme-link-color, #006699);
+            background: #006699;
             transform: scale(0.98);
         }
         .result-block {
             margin-top: 28px;
             text-align: center;
-            background: var(--tg-theme-secondary-bg-color, #fff);
+            background: #ffffff;
             border-radius: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             padding: 18px 10px;
@@ -145,11 +145,11 @@
         .result-price {
             font-size: 30px;
             font-weight: bold;
-            color: var(--tg-theme-link-color, #0088cc);
+            color: #0088cc;
             margin-bottom: 8px;
         }
         .result-desc {
-            color: var(--tg-theme-hint-color, #888);
+            color: #888888;
             font-size: 15px;
         }
         @media (max-width: 600px) {
@@ -160,32 +160,39 @@
             top: 100%;
             left: 0;
             right: 0;
-            background: #fff;
-            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
+            background: #ffffff;
+            border: 1.5px solid #888888;
+            border-top: none;
             border-radius: 0 0 10px 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
             z-index: 10;
             max-height: 180px;
             overflow-y: auto;
+            animation: fadeSuggest 0.18s;
+            display: none;
         }
         .suggest-item {
             padding: 10px 14px;
             cursor: pointer;
             font-size: 15px;
-            color: #222;
-            transition: background 0.15s;
+            color: #222222;
+            transition: background 0.15s, color 0.15s;
         }
         .suggest-item:hover, .suggest-item.selected {
-            background: var(--tg-theme-link-color, #0088cc);
+            background: #0088cc;
             color: #fff;
+        }
+        @keyframes fadeSuggest {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         .region-input {
             width: 100%;
             padding: 10px 12px 10px 38px;
             border-radius: 10px;
-            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
-            background: var(--tg-theme-secondary-bg-color, #fff);
-            color: var(--tg-theme-text-color, #222);
+            border: 1.5px solid #888888;
+            background: #ffffff;
+            color: #222222;
             font-size: 15px;
             box-sizing: border-box;
             outline: none;
@@ -193,7 +200,7 @@
             margin-bottom: 0;
         }
         .region-input:focus {
-            border: 1.5px solid var(--tg-theme-link-color, #0088cc);
+            border: 1.5px solid #0088cc;
             box-shadow: 0 2px 8px rgba(0,136,204,0.07);
         }
         .region-icon {
@@ -204,39 +211,6 @@
             pointer-events: none;
             z-index: 2;
         }
-        .suggest-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 1.5px solid var(--tg-theme-hint-color, #ccc);
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-            z-index: 10;
-            max-height: 180px;
-            overflow-y: auto;
-            animation: fadeSuggest 0.18s;
-        }
-        .suggest-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 15px;
-            color: #222;
-            transition: background 0.15s, color 0.15s;
-        }
-        .suggest-item:hover, .suggest-item.selected {
-            background: var(--tg-theme-link-color, #0088cc);
-            color: #fff;
-        }
-        @keyframes fadeSuggest {
-            from { opacity: 0; transform: translateY(-8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .form-group { margin-bottom: 1em; }
-        .error-message { color: #d9534f; font-size: 0.95em; margin-top: 0.25em; }
-        #result { margin-top: 2em; }
     </style>
 </head>
 <body>
@@ -255,18 +229,30 @@
                 <b>Аренда</b> — узнать стоимость аренды или сдачи квартиры.
             </div>
         </div>
-        <!-- Добавляю современный блок выбора региона и города -->
-        <div class="form-group">
-            <label for="regionInput">Регион:</label>
-            <input list="regions" id="regionInput" class="form-control" placeholder="Выберите регион" autocomplete="off">
-            <datalist id="regions"></datalist>
-            <div id="regionError" class="error-message"></div>
+        <!-- Блок выбора региона и города -->
+        <div class="filter-group">
+            <span class="filter-label">Регион</span>
+            <div style="position:relative;">
+                <svg class="region-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12.5C13.6569 12.5 15 11.1569 15 9.5C15 7.84315 13.6569 6.5 12 6.5C10.3431 6.5 9 7.84315 9 9.5C9 11.1569 10.3431 12.5 12 12.5Z" stroke="var(--tg-theme-hint-color, #888)" stroke-width="1.5"/>
+                    <path d="M12 22C14 18 20 15.4183 20 10C20 5.58172 16.4183 2 12 2C7.58172 2 4 5.58172 4 10C4 15.4183 10 18 12 22Z" stroke="var(--tg-theme-hint-color, #888)" stroke-width="1.5"/>
+                </svg>
+                <input type="text" id="regionInput" class="region-input" placeholder="Выберите регион" autocomplete="off">
+                <div id="regionSuggest" class="suggest-list"></div>
+            </div>
+            <div class="field-error" id="error-region"></div>
         </div>
-        <div class="form-group">
-            <label for="cityInput">Город:</label>
-            <input list="cities" id="cityInput" class="form-control" placeholder="Выберите город или оставьте пустым для всех городов региона" autocomplete="off" disabled>
-            <datalist id="cities"></datalist>
-            <div id="cityError" class="error-message"></div>
+        <div class="filter-group">
+            <span class="filter-label">Город (необязательно)</span>
+            <div style="position:relative;">
+                <svg class="region-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12.5C13.6569 12.5 15 11.1569 15 9.5C15 7.84315 13.6569 6.5 12 6.5C10.3431 6.5 9 7.84315 9 9.5C9 11.1569 10.3431 12.5 12 12.5Z" stroke="var(--tg-theme-hint-color, #888)" stroke-width="1.5"/>
+                    <path d="M12 22C14 18 20 15.4183 20 10C20 5.58172 16.4183 2 12 2C7.58172 2 4 5.58172 4 10C4 15.4183 10 18 12 22Z" stroke="var(--tg-theme-hint-color, #888)" stroke-width="1.5"/>
+                </svg>
+                <input type="text" id="cityInput" class="region-input" placeholder="Выберите город" autocomplete="off" disabled>
+                <div id="citySuggest" class="suggest-list"></div>
+            </div>
+            <div class="field-error" id="error-city"></div>
         </div>
         <!-- Блок выбора типа здания -->
         <div class="filter-group">
@@ -312,8 +298,8 @@
                     <input type="number" id="kitchen_area" placeholder="Площадь кухни" min="3" max="50">
                     <div class="field-error" id="error-kitchen_area"></div>
                 </div>
-    </div>
-    </div>
+            </div>
+        </div>
         <button class="predict-btn" onclick="calculate()">Показать прогноз</button>
         <div id="result" style="display:none"></div>
     </div>
@@ -344,77 +330,16 @@
             {label: "Аренда", value: "rent"}
         ];
 
-        // --- Загрузка поддерживаемых регионов с бэка ---
-        let regions = [];
-        fetch('https://web-production-1e3e8.up.railway.app/locations')
-          .then(res => res.json())
-          .then(data => {
-            regions = data;
-            regions = regions.sort((a, b) => a.localeCompare(b, 'ru'));
-            // Можно вызвать функцию для инициализации автопоиска, если нужно
-          });
-
-        // --- Автопоиск региона ---
+        // --- Элементы UI ---
         const regionInput = document.getElementById('regionInput');
+        const regionSuggest = document.getElementById('regionSuggest');
+        const cityInput = document.getElementById('cityInput');
+        const citySuggest = document.getElementById('citySuggest');
+        let regions = [];
+        let cities = [];
         let regionSelected = '';
 
-        function showRegionSuggest(filtered) {
-            if (!filtered.length) {
-                // regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
-                return;
-            }
-            // regionSuggest.innerHTML = ''; // This line is removed as regionSuggest is no longer defined
-            // filtered.forEach(region => { // This line is removed as regionSuggest is no longer defined
-            //     const div = document.createElement('div'); // This line is removed as regionSuggest is no longer defined
-            //     div.className = 'suggest-item'; // This line is removed as regionSuggest is no longer defined
-            //     div.textContent = region; // This line is removed as regionSuggest is no longer defined
-            //     div.onclick = () => { // This line is removed as regionSuggest is no longer defined
-            //         regionInput.value = region; // This line is removed as regionSuggest is no longer defined
-            //         regionSelected = region; // This line is removed as regionSuggest is no longer defined
-            //         // regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
-            //     }; // This line is removed as regionSuggest is no longer defined
-            //     // regionSuggest.appendChild(div); // This line is removed as regionSuggest is no longer defined
-            // }); // This line is removed as regionSuggest is no longer defined
-            // regionSuggest.style.display = 'block'; // This line is removed as regionSuggest is no longer defined
-        }
-
-        regionInput.addEventListener('input', function() {
-            const val = regionInput.value.trim().toLowerCase();
-            if (!val) {
-                showRegionSuggest(regions.slice(0, 10));
-                regionSelected = '';
-                return;
-            }
-            // Сначала регионы, начинающиеся с val, затем остальные
-            const startsWith = regions.filter(r => r.toLowerCase().startsWith(val));
-            const includes = regions.filter(r => !r.toLowerCase().startsWith(val) && r.toLowerCase().includes(val));
-            const filtered = startsWith.concat(includes).slice(0, 10);
-            showRegionSuggest(filtered);
-            regionSelected = '';
-        });
-        regionInput.addEventListener('focus', function() {
-            if (regionInput.value.trim() === '') {
-                showRegionSuggest(regions.slice(0, 10));
-            } else {
-                const val = regionInput.value.trim().toLowerCase();
-                const startsWith = regions.filter(r => r.toLowerCase().startsWith(val));
-                const includes = regions.filter(r => !r.toLowerCase().startsWith(val) && r.toLowerCase().includes(val));
-                const filtered = startsWith.concat(includes).slice(0, 10);
-                showRegionSuggest(filtered);
-            }
-        });
-        document.addEventListener('click', function(e) {
-            // if (!regionInput.contains(e.target) && !regionSuggest.contains(e.target)) { // This line is removed as regionSuggest is no longer defined
-            //     regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
-            // } // This line is removed as regionSuggest is no longer defined
-        });
-        regionInput.addEventListener('blur', function() {
-            setTimeout(() => {
-                // regionSuggest.style.display = 'none'; // This line is removed as regionSuggest is no longer defined
-            }, 150);
-        });
-
-        // --- Сохраняем выбранные значения чипов ---
+        // --- Инициализация чипов ---
         let selectedChips = {
             'deal-type-list': null,
             'building-type-list': null,
@@ -437,30 +362,111 @@
                         selectedChips[containerId] = chip.dataset.value;
                     } else {
                         chip.classList.toggle('selected');
-                        // Для мультивыбора можно реализовать массив, если потребуется
                     }
                 };
-                // Восстанавливаем выделение, если ранее было выбрано
                 if (selectedChips[containerId] && chip.dataset.value == selectedChips[containerId]) {
                     chip.classList.add('selected');
                 }
                 container.appendChild(chip);
             });
         }
+
+        // Инициализация чипов
         renderChips(buildingTypes, 'building-type-list');
         renderChips(objectTypes, 'object-type-list');
         renderChips(rooms, 'rooms-list');
         renderChips(dealTypes, 'deal-type-list');
 
-        // --- Получить выбранное значение ---
-        function getSelected(containerId) {
-            // Сначала пытаемся получить из DOM, если нет — из selectedChips
-            const sel = document.querySelector(`#${containerId} .chip.selected`);
-            if (sel) return sel.dataset.value;
-            return selectedChips[containerId] || null;
+        // --- Функции автокомплита ---
+        function showSuggestions(input, container, items) {
+            container.innerHTML = '';
+            if (!items.length) {
+                container.style.display = 'none';
+                return;
+            }
+
+            items.slice(0, 8).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'suggest-item';
+                div.textContent = item;
+                div.onclick = () => {
+                    input.value = item;
+                    container.style.display = 'none';
+                    if (input === regionInput) {
+                        regionSelected = item;
+                        loadCities(item);
+                    }
+                };
+                container.appendChild(div);
+            });
+            container.style.display = 'block';
         }
 
-        // --- Очистка ошибок ---
+        async function loadCities(region) {
+            cityInput.disabled = true;
+            cityInput.value = '';
+            cityInput.placeholder = 'Загрузка городов...';
+
+            try {
+                const response = await fetch(`https://web-production-1e3e8.up.railway.app/cities?region=${encodeURIComponent(region)}`);
+                cities = await response.json();
+                cityInput.placeholder = 'Выберите город (необязательно)';
+                cityInput.disabled = false;
+            } catch (e) {
+                cityInput.placeholder = 'Ошибка загрузки городов';
+                console.error('Ошибка загрузки городов:', e);
+            }
+        }
+
+        // --- Обработчики событий ---
+        regionInput.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            if (!val) {
+                showSuggestions(regionInput, regionSuggest, []);
+                return;
+            }
+            const filtered = regions.filter(r => r.toLowerCase().includes(val));
+            showSuggestions(regionInput, regionSuggest, filtered);
+        });
+
+        regionInput.addEventListener('focus', function() {
+            if (this.value.trim() === '') {
+                showSuggestions(regionInput, regionSuggest, regions.slice(0, 8));
+            } else {
+                const val = this.value.trim().toLowerCase();
+                const filtered = regions.filter(r => r.toLowerCase().includes(val));
+                showSuggestions(regionInput, regionSuggest, filtered);
+            }
+        });
+
+        cityInput.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            if (!val) {
+                showSuggestions(cityInput, citySuggest, []);
+                return;
+            }
+            const filtered = cities.filter(c => c.toLowerCase().includes(val));
+            showSuggestions(cityInput, citySuggest, filtered);
+        });
+
+        // Скрытие подсказок при клике вне полей
+        document.addEventListener('click', function(e) {
+            if (!regionInput.contains(e.target) && !regionSuggest.contains(e.target)) {
+                regionSuggest.style.display = 'none';
+            }
+            if (!cityInput.contains(e.target) && !citySuggest.contains(e.target)) {
+                citySuggest.style.display = 'none';
+            }
+        });
+
+        // Загрузка регионов при старте
+        fetch('https://web-production-1e3e8.up.railway.app/locations')
+            .then(res => res.json())
+            .then(data => {
+                regions = data.sort((a, b) => a.localeCompare(b, 'ru'));
+            });
+
+        // --- Валидация и расчет ---
         function clearFieldErrors() {
             document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
             document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
@@ -471,15 +477,17 @@
             document.getElementById(errorId).textContent = message;
             document.getElementById(inputId).classList.add('input-error');
         }
+
         function showChipError(errorId, message, chipListId) {
             document.getElementById(errorId).textContent = message;
             document.getElementById(chipListId).classList.add('chip-error');
         }
 
-        // --- Калькуляция с инлайн-валидацией ---
-        const tg = Telegram.WebApp;
-        tg.expand();
-        tg.MainButton.setText("Сохранить");
+        function getSelected(containerId) {
+            const sel = document.querySelector(`#${containerId} .chip.selected`);
+            if (sel) return sel.dataset.value;
+            return selectedChips[containerId] || null;
+        }
 
         async function calculate() {
             clearFieldErrors();
@@ -495,22 +503,19 @@
             const kitchen_area = document.getElementById('kitchen_area').value;
             const deal_type = getSelected('deal-type-list');
 
-            // Строгая проверка: регион должен быть из списка (без учета регистра и пробелов)
+            // Валидация
             if (!region || !regions.some(r => r.trim().toLowerCase() === region.trim().toLowerCase())) {
-                showFieldError('region-input', 'error-region', 'Выберите регион из списка');
+                showFieldError('regionInput', 'error-region', 'Выберите регион из списка');
                 hasError = true;
             }
-            // Строгая проверка: тип здания
             if (!building_type || !buildingTypes.some(t => String(t.value) === String(building_type))) {
                 showChipError('error-building-type', 'Выберите тип здания из списка', 'building-type-list');
                 hasError = true;
             }
-            // Строгая проверка: тип объекта
             if (!object_type || !objectTypes.some(t => String(t.value) === String(object_type))) {
                 showChipError('error-object-type', 'Выберите тип объекта из списка', 'object-type-list');
                 hasError = true;
             }
-            // Строгая проверка: количество комнат
             if (!roomsVal || !rooms.some(t => String(t.value) === String(roomsVal))) {
                 showChipError('error-rooms', 'Выберите количество комнат из списка', 'rooms-list');
                 hasError = true;
@@ -531,7 +536,6 @@
                 showFieldError('kitchen_area', 'error-kitchen_area', 'Заполните кухню');
                 hasError = true;
             }
-            // Строгая проверка: тип сделки
             if (!deal_type || !dealTypes.some(t => String(t.value) === String(deal_type))) {
                 showChipError('error-deal-type', 'Выберите тип сделки из списка', 'deal-type-list');
                 hasError = true;
@@ -539,8 +543,9 @@
 
             if (hasError) return;
 
-            // --- Найти точное название региона для отправки ---
+            // Найти точное название региона для отправки
             const region_name = regions.find(r => r.trim().toLowerCase() === region.trim().toLowerCase()) || region;
+            const city_name = cityInput.value.trim() || undefined;
 
             const resultBlock = document.getElementById('result');
             resultBlock.style.display = 'none';
@@ -548,16 +553,22 @@
 
             try {
                 const response = await fetch('https://web-production-1e3e8.up.railway.app/predict', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                        region_name, building_type, object_type, rooms: roomsVal,
-                        level: Number(level), levels: Number(levels),
-                        area: Number(area), kitchen_area: Number(kitchen_area),
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        region_name,
+                        city_name,
+                        building_type,
+                        object_type,
+                        rooms: roomsVal,
+                        level: Number(level),
+                        levels: Number(levels),
+                        area: Number(area),
+                        kitchen_area: Number(kitchen_area),
                         deal_type
-                })
-            });
-            const data = await response.json();
+                    })
+                });
+                const data = await response.json();
                 if (response.ok && data.price !== undefined) {
                     let analogsHtml = '';
                     if (data.analogs && data.analogs.length > 0) {
@@ -587,63 +598,10 @@
             }
         }
 
-        // Получение и заполнение регионов
-        fetch('/regions')
-          .then(res => res.json())
-          .then(regions => {
-            const datalist = document.getElementById('regions');
-            datalist.innerHTML = regions.map(r => `<option value="${r}">`).join('');
-          });
-
-        // При выборе региона — подгружаем города
-        const cityInput = document.getElementById('cityInput');
-        regionInput.addEventListener('change', function() {
-          const region = this.value;
-          document.getElementById('regionError').textContent = '';
-          cityInput.value = '';
-          cityInput.disabled = true;
-          fetch(`/cities?region=${encodeURIComponent(region)}`)
-            .then(res => res.json())
-            .then(cities => {
-              const datalist = document.getElementById('cities');
-              datalist.innerHTML = cities.map(c => `<option value="${c}">`).join('');
-              cityInput.disabled = false;
-            });
-        });
-
-        // Валидация и отправка формы
-        const predictBtn = document.getElementById('predictBtn');
-        predictBtn.addEventListener('click', function() {
-          const region = regionInput.value.trim();
-          const city = cityInput.value.trim();
-          let valid = true;
-          document.getElementById('regionError').textContent = '';
-          document.getElementById('cityError').textContent = '';
-          if (!region) {
-            document.getElementById('regionError').textContent = 'Выберите регион';
-            valid = false;
-          }
-          if (!valid) return;
-          predictBtn.disabled = true;
-          fetch('/predict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ region, city: city || undefined })
-          })
-            .then(res => res.json())
-            .then(data => {
-              predictBtn.disabled = false;
-              if (data.error) {
-                document.getElementById('result').innerHTML = `<div class='error-message'>${data.error}</div>`;
-              } else {
-                document.getElementById('result').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-              }
-            })
-            .catch(err => {
-              predictBtn.disabled = false;
-              document.getElementById('result').innerHTML = `<div class='error-message'>Ошибка запроса: ${err}</div>`;
-            });
-        });
+        // Инициализация Telegram WebApp
+        const tg = Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.setText("Сохранить");
     </script>
 </body>
 </html>
